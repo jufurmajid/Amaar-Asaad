@@ -34,9 +34,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.amaarasaad.store.data.api.ApiService
 import com.amaarasaad.store.data.repository.CartRepositoryImpl
-import com.amaarasaad.store.data.repository.OrderRepositoryImpl
-import com.amaarasaad.store.data.repository.ProductRepositoryImpl
+import com.amaarasaad.store.data.repository.RemoteOrderRepository
+import com.amaarasaad.store.data.repository.RemoteProductRepository
 import com.amaarasaad.store.ui.navigation.Screen
 import com.amaarasaad.store.ui.screens.CartScreen
 import com.amaarasaad.store.ui.screens.CategoriesScreen
@@ -59,10 +60,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Data Repositories
-        val productRepository = ProductRepositoryImpl()
+        // Initialize API Service & Repositories
+        val apiService = ApiService.create(BuildConfig.BASE_URL)
         val cartRepository = CartRepositoryImpl()
-        val orderRepository = OrderRepositoryImpl(cartRepository)
+        val productRepository = RemoteProductRepository(apiService, fallbackToMock = true)
+        val orderRepository = RemoteOrderRepository(apiService, cartRepository, fallbackToMock = true)
 
         // Initialize ViewModels
         val homeViewModel = HomeViewModel(productRepository, cartRepository)
