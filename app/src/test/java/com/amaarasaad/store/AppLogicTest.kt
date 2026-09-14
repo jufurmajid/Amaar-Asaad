@@ -1,10 +1,13 @@
 package com.amaarasaad.store
 
+import com.amaarasaad.store.data.api.ApiService
 import com.amaarasaad.store.data.datasource.MockDataSource
 import com.amaarasaad.store.data.model.OrderCustomerInfo
 import com.amaarasaad.store.data.repository.CartRepositoryImpl
 import com.amaarasaad.store.data.repository.OrderRepositoryImpl
 import com.amaarasaad.store.data.repository.ProductRepositoryImpl
+import com.amaarasaad.store.data.repository.RemoteOrderRepository
+import com.amaarasaad.store.data.repository.RemoteProductRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -19,11 +22,18 @@ class AppLogicTest {
     private lateinit var cartRepository: CartRepositoryImpl
     private lateinit var orderRepository: OrderRepositoryImpl
 
+    private lateinit var remoteProductRepository: RemoteProductRepository
+    private lateinit var remoteOrderRepository: RemoteOrderRepository
+
     @Before
     fun setUp() {
         productRepository = ProductRepositoryImpl()
         cartRepository = CartRepositoryImpl()
         orderRepository = OrderRepositoryImpl(cartRepository)
+
+        val fakeApiService = ApiService.create("http://localhost:9999/api/")
+        remoteProductRepository = RemoteProductRepository(fakeApiService, fallbackToMock = true)
+        remoteOrderRepository = RemoteOrderRepository(fakeApiService, cartRepository, fallbackToMock = true)
     }
 
     @Test
@@ -34,6 +44,36 @@ class AppLogicTest {
         assertTrue(categories.isNotEmpty())
         assertTrue(products.isNotEmpty())
         assertEquals("دفاتر", categories.first().nameAr)
+    }
+
+    @Test
+    fun testRemoteRepositoriesFallbackToMockWhenOffline() = runBlocking {
+        val categories = remoteProductRepository.getCategories()
+        val products = remoteProductRepository.getProducts()
+
+        assertTrue(categories.isNotEmpty())
+        assertTrue(products.isNotEmpty())
+
+        val product = products[0]
+        cartRepository.addToCart(product, 2)
+
+        val items = cartRepository.cartItems.first()
+        val total = cartRepository.cartTotalIqd.first()
+
+        val info = OrderCustomerInfo(
+            fullName = "حسين علي",
+            phoneNumber = "07800000000",
+            address = "النجف - حي الأمل",
+            nearestLandmark = "قرب المستشفى"
+        )
+
+        val result = remoteOrderRepository.submitOrder(info, items, total)
+        assertTrue(result.isSuccess)
+        assertNotNull(result.getOrNull())
+        assertEquals("حسين علي", result.getOrNull()?.customerInfo?.fullName)
+
+        val remainingCart = cartRepository.cartItems.first()
+        assertTrue(remainingCart.isEmpty())
     }
 
     @Test
