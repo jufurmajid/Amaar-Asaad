@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -34,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.amaarasaad.store.data.model.Category
+import com.amaarasaad.store.ui.components.DeveloperFooter
 import com.amaarasaad.store.ui.components.ErrorView
 import com.amaarasaad.store.ui.components.LoadingView
 import com.amaarasaad.store.ui.components.getCategoryIcon
@@ -63,13 +62,13 @@ fun CategoriesScreen(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "جميع أقسام المكتبة",
+                    text = "جميع أقسام المتجر",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = NavyPrimary,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "اختر القسم لتصفح المنتجات المتوفرة",
+                    text = "اختر القسم لتصفح اللحوم والألبان والأجبان الطازجة",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -77,6 +76,7 @@ fun CategoriesScreen(
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
@@ -85,6 +85,8 @@ fun CategoriesScreen(
                         CategoryGridCard(category = category, onClick = { onCategoryClick(category.id) })
                     }
                 }
+
+                DeveloperFooter()
             }
         }
     }
@@ -112,13 +114,13 @@ fun CategoryGridCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color(0xFFE6FFFA), CircleShape),
+                    .background(Color(0xFFFEF2F2), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCategoryIcon(category.id),
                     contentDescription = category.nameAr,
-                    tint = TealAccent,
+                    tint = NavyPrimary,
                     modifier = Modifier.size(26.dp)
                 )
             }

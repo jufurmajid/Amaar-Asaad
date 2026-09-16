@@ -18,7 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,6 +46,7 @@ import com.amaarasaad.store.ui.components.LoadingView
 import com.amaarasaad.store.ui.components.QuantitySelector
 import com.amaarasaad.store.ui.components.formatPrice
 import com.amaarasaad.store.ui.components.getCategoryIcon
+import com.amaarasaad.store.ui.theme.DangerRed
 import com.amaarasaad.store.ui.theme.NavyPrimary
 import com.amaarasaad.store.ui.theme.TealAccent
 import com.amaarasaad.store.ui.theme.TextSecondary
@@ -73,6 +74,8 @@ fun ProductDetailsScreen(
         is UiState.Error -> ErrorView(message = state.message, onRetry = { viewModel.loadProductDetails(productId) })
         is UiState.Success -> {
             val product = state.data
+            val isOutOfStock = !product.isAvailable || product.stockQuantity <= 0
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -105,26 +108,26 @@ fun ProductDetailsScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp)
                 ) {
-                    // Big Image Mock
+                    // Big Image Graphic Box
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(240.dp),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isOutOfStock) Color(0xFFF1F5F9) else Color(0xFFFEF2F2)
+                        ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFFF1F5F9)),
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = getCategoryIcon(product.categoryId),
                                 contentDescription = null,
                                 modifier = Modifier.size(96.dp),
-                                tint = TealAccent
+                                tint = if (isOutOfStock) Color.Gray else NavyPrimary
                             )
                         }
                     }
@@ -144,26 +147,38 @@ fun ProductDetailsScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Inventory,
+                            imageVector = if (isOutOfStock) Icons.Default.Cancel else Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = TealAccent,
+                            tint = if (isOutOfStock) DangerRed else Color(0xFF16A34A),
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            text = "الكمية المتوفرة: ${product.stockQuantity} قطعة",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                            color = TextSecondary
+                            text = if (isOutOfStock) "غير متوفر حالياً" else "متوفر في المخزون (${product.stockQuantity} ${product.unit})",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = if (isOutOfStock) DangerRed else Color(0xFF16A34A)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "${formatPrice(product.priceIqd)} دينار عراقي",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealAccent
-                    )
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "${formatPrice(product.priceIqd)} د.ع",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = NavyPrimary
+                        )
+                        Text(
+                            text = "/ ${product.unit}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(bottom = 3.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -184,23 +199,25 @@ fun ProductDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Quantity Selection
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "اختر الكمية المطلوبة:",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = NavyPrimary
-                        )
+                    // Quantity Selection (if available)
+                    if (!isOutOfStock) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "الكمية (${product.unit}):",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = NavyPrimary
+                            )
 
-                        QuantitySelector(
-                            quantity = quantity,
-                            maxStock = product.stockQuantity,
-                            onQuantityChange = { viewModel.updateQuantity(it) }
-                        )
+                            QuantitySelector(
+                                quantity = quantity,
+                                maxStock = product.stockQuantity,
+                                onQuantityChange = { viewModel.updateQuantity(it) }
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -215,29 +232,44 @@ fun ProductDetailsScreen(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.addToCart(product)
-                            scope.launch {
-                                snackbarHostState.showSnackbar("تمت إضافة $quantity من \"${product.nameAr}\" إلى السلة")
+                            if (!isOutOfStock) {
+                                viewModel.addToCart(product)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("تمت إضافة $quantity ${product.unit} من \"${product.nameAr}\" إلى السلة")
+                                }
                             }
                         },
+                        enabled = !isOutOfStock,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealAccent,
+                            disabledContainerColor = Color.LightGray
+                        )
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AddShoppingCart,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "إضافة إلى السلة (${formatPrice(product.priceIqd * quantity)} د.ع)",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (isOutOfStock) {
+                            Text(
+                                text = "غير متوفر حالياً",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AddShoppingCart,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "أضف إلى السلة (${formatPrice(product.priceIqd * quantity)} د.ع)",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }

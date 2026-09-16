@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -37,7 +38,9 @@ import androidx.navigation.navArgument
 import com.amaarasaad.store.data.repository.CartRepositoryImpl
 import com.amaarasaad.store.data.repository.OrderRepositoryImpl
 import com.amaarasaad.store.data.repository.ProductRepositoryImpl
+import com.amaarasaad.store.data.service.TelegramService
 import com.amaarasaad.store.ui.navigation.Screen
+import com.amaarasaad.store.ui.screens.AdminScreen
 import com.amaarasaad.store.ui.screens.CartScreen
 import com.amaarasaad.store.ui.screens.CategoriesScreen
 import com.amaarasaad.store.ui.screens.CheckoutScreen
@@ -47,6 +50,7 @@ import com.amaarasaad.store.ui.screens.ProductsListScreen
 import com.amaarasaad.store.ui.theme.AmaarAsaadStoreTheme
 import com.amaarasaad.store.ui.theme.NavyPrimary
 import com.amaarasaad.store.ui.theme.TealAccent
+import com.amaarasaad.store.ui.viewmodel.AdminViewModel
 import com.amaarasaad.store.ui.viewmodel.CartViewModel
 import com.amaarasaad.store.ui.viewmodel.CategoriesViewModel
 import com.amaarasaad.store.ui.viewmodel.CheckoutViewModel
@@ -59,10 +63,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Data Repositories
+        // Initialize Services & Repositories
+        val telegramService = TelegramService()
         val productRepository = ProductRepositoryImpl()
-        val cartRepository = CartRepositoryImpl()
-        val orderRepository = OrderRepositoryImpl(cartRepository)
+        val cartRepository = CartRepositoryImpl(productRepository)
+        val orderRepository = OrderRepositoryImpl(
+            productRepository = productRepository,
+            cartRepository = cartRepository,
+            onOrderCreatedListener = { order ->
+                telegramService.sendNewOrderNotification(order)
+            }
+        )
 
         // Initialize ViewModels
         val homeViewModel = HomeViewModel(productRepository, cartRepository)
@@ -71,6 +82,7 @@ class MainActivity : ComponentActivity() {
         val productDetailsViewModel = ProductDetailsViewModel(productRepository, cartRepository)
         val cartViewModel = CartViewModel(cartRepository)
         val checkoutViewModel = CheckoutViewModel(cartRepository, orderRepository)
+        val adminViewModel = AdminViewModel(productRepository, orderRepository)
 
         setContent {
             AmaarAsaadStoreTheme {
@@ -80,7 +92,8 @@ class MainActivity : ComponentActivity() {
                     productsViewModel = productsViewModel,
                     productDetailsViewModel = productDetailsViewModel,
                     cartViewModel = cartViewModel,
-                    checkoutViewModel = checkoutViewModel
+                    checkoutViewModel = checkoutViewModel,
+                    adminViewModel = adminViewModel
                 )
             }
         }
@@ -100,7 +113,8 @@ fun MainAppScreen(
     productsViewModel: ProductsViewModel,
     productDetailsViewModel: ProductDetailsViewModel,
     cartViewModel: CartViewModel,
-    checkoutViewModel: CheckoutViewModel
+    checkoutViewModel: CheckoutViewModel,
+    adminViewModel: AdminViewModel
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -110,7 +124,8 @@ fun MainAppScreen(
     val bottomNavItems = listOf(
         BottomNavItem("الرئيسية", Screen.Home.route, Icons.Default.Home),
         BottomNavItem("الأقسام", Screen.Categories.route, Icons.Default.Category),
-        BottomNavItem("السلة", Screen.Cart.route, Icons.Default.ShoppingCart)
+        BottomNavItem("السلة", Screen.Cart.route, Icons.Default.ShoppingCart),
+        BottomNavItem("الإدارة", Screen.Admin.route, Icons.Default.AdminPanelSettings)
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -120,7 +135,8 @@ fun MainAppScreen(
     val shouldShowBottomBar = currentRoute in listOf(
         Screen.Home.route,
         Screen.Categories.route,
-        Screen.Cart.route
+        Screen.Cart.route,
+        Screen.Admin.route
     )
 
     Scaffold(
@@ -265,6 +281,13 @@ fun MainAppScreen(
                                 popUpTo(Screen.Home.route) { inclusive = true }
                             }
                         }
+                    )
+                }
+
+                composable(Screen.Admin.route) {
+                    AdminScreen(
+                        viewModel = adminViewModel,
+                        onBackClick = { navController.popBackStack() }
                     )
                 }
             }
