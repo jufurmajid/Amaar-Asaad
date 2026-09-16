@@ -2,12 +2,14 @@ package com.amaarasaad.store
 
 import com.amaarasaad.store.data.datasource.MockDataSource
 import com.amaarasaad.store.data.model.OrderCustomerInfo
+import com.amaarasaad.store.data.model.OrderStatus
 import com.amaarasaad.store.data.repository.CartRepositoryImpl
 import com.amaarasaad.store.data.repository.OrderRepositoryImpl
 import com.amaarasaad.store.data.repository.ProductRepositoryImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -22,71 +24,132 @@ class AppLogicTest {
     @Before
     fun setUp() {
         productRepository = ProductRepositoryImpl()
-        cartRepository = CartRepositoryImpl()
-        orderRepository = OrderRepositoryImpl(cartRepository)
+        cartRepository = CartRepositoryImpl(productRepository)
+        orderRepository = OrderRepositoryImpl(productRepository, cartRepository)
     }
 
     @Test
-    fun testGetCategoriesAndProducts() = runBlocking {
+    fun testGetMeatDairyCategoriesAndProducts() = runBlocking {
         val categories = productRepository.getCategories()
         val products = productRepository.getProducts()
 
         assertTrue(categories.isNotEmpty())
         assertTrue(products.isNotEmpty())
-        assertEquals("دفاتر", categories.first().nameAr)
+
+        val meatCategory = categories.find { it.id == "cat_meat" }
+        assertNotNull(meatCategory)
+        assertEquals("اللحوم الطازجة", meatCategory?.nameAr)
+
+        val meatProducts = productRepository.getProductsByCategory("cat_meat")
+        assertTrue(meatProducts.isNotEmpty())
+        assertTrue(meatProducts.all { it.categoryId == "cat_meat" })
     }
 
     @Test
-    fun testCartOperationsAndTotal() = runBlocking {
-        val sampleProduct1 = MockDataSource.products[0]
-        val sampleProduct2 = MockDataSource.products[2]
+    fun testSearchMeatProducts() = runBlocking {
+        val searchResults = productRepository.searchProducts("لحم")
+        assertTrue(searchResults.isNotEmpty())
+        assertTrue(searchResults.any { it.nameAr.contains("لحم") })
+
+        val cheeseResults = productRepository.searchProducts("جبن")
+        assertTrue(cheeseResults.isNotEmpty())
+        assertTrue(cheeseResults.any { it.nameAr.contains("جبن") })
+    }
+
+    @Test
+    fun testCartOperationsAndTotalCalculation() = runBlocking {
+        val meatProduct = productRepository.getProductById("prod_meat_1")!!
+        val dairyProduct = productRepository.getProductById("prod_dairy_1")!!
 
         // Add to cart
-        cartRepository.addToCart(sampleProduct1, 2)
-        cartRepository.addToCart(sampleProduct2, 1)
+        val addRes1 = cartRepository.addToCart(meatProduct, 2)
+        val addRes2 = cartRepository.addToCart(dairyProduct, 1)
+
+        assertTrue(addRes1.isSuccess)
+        assertTrue(addRes2.isSuccess)
 
         var items = cartRepository.cartItems.first()
         var total = cartRepository.cartTotalIqd.first()
 
         assertEquals(2, items.size)
-        assertEquals(sampleProduct1.priceIqd * 2 + sampleProduct2.priceIqd * 1, total)
+        assertEquals(meatProduct.priceIqd * 2 + dairyProduct.priceIqd * 1, total)
 
         // Update quantity
-        cartRepository.updateQuantity(sampleProduct1.id, 3)
+        val updateRes = cartRepository.updateQuantity(meatProduct.id, 3)
+        assertTrue(updateRes.isSuccess)
+
         total = cartRepository.cartTotalIqd.first()
-        assertEquals(sampleProduct1.priceIqd * 3 + sampleProduct2.priceIqd * 1, total)
+        assertEquals(meatProduct.priceIqd * 3 + dairyProduct.priceIqd * 1, total)
 
         // Remove item
-        cartRepository.removeFromCart(sampleProduct2.id)
+        cartRepository.removeFromCart(dairyProduct.id)
         items = cartRepository.cartItems.first()
         assertEquals(1, items.size)
-        assertEquals(sampleProduct1.id, items[0].product.id)
+        assertEquals(meatProduct.id, items[0].product.id)
     }
 
     @Test
-    fun testOrderSubmissionAndCartClearing() = runBlocking {
-        val product = MockDataSource.products[0]
+    fun testOrderSubmissionDeductsStockAndClearsCart() = runBlocking {
+        val product = productRepository.getProductById("prod_meat_1")!!
+        val initialStock = product.stockQuantity
+
         cartRepository.addToCart(product, 2)
 
         val items = cartRepository.cartItems.first()
-        val total = cartRepository.cartTotalIqd.first()
 
         val info = OrderCustomerInfo(
-            fullName = "أحمد علي",
+            fullName = "جعفر ماجد",
             phoneNumber = "07701234567",
-            address = "بغداد - الكرادة",
-            nearestLandmark = "قرب ساحة الواثق"
+            city = "بغداد",
+            address = "الكرادة - الشارع العام",
+            nearestLandmark = "مقابل جامع الخلاني",
+            notes = "يرجى تقطيع اللحم إلى قطع صغيرة"
         )
 
-        val result = orderRepository.submitOrder(info, items, total)
+        val result = orderRepository.submitOrder(info, items)
         assertTrue(result.isSuccess)
 
         val order = result.getOrNull()
         assertNotNull(order)
-        assertEquals("أحمد علي", order?.customerInfo?.fullName)
+        assertEquals("جعفر ماجد", order?.customerInfo?.fullName)
+        assertEquals("الدفع عند الاستلام", order?.paymentMethod)
+        assertEquals(OrderStatus.NEW.name, order?.status)
+
+        // Verify stock deducted
+        val updatedProduct = productRepository.getProductById(product.id)!!
+        assertEquals(initialStock - 2, updatedProduct.stockQuantity)
 
         // Verify cart is cleared
         val remainingCart = cartRepository.cartItems.first()
         assertTrue(remainingCart.isEmpty())
+    }
+
+    @Test
+    fun testAdminOrderStatusUpdate() = runBlocking {
+        val product = productRepository.getProductById("prod_meat_2")!!
+        cartRepository.addToCart(product, 1)
+
+        val info = OrderCustomerInfo(
+            fullName = "علي حسين",
+            phoneNumber = "07800000000",
+            city = "بغداد",
+            address = "المنصور",
+            nearestLandmark = "قرب الرواد"
+        )
+
+        val result = orderRepository.submitOrder(info, cartRepository.cartItems.first())
+        val orderId = result.getOrThrow().id
+
+        // Update status to PREPARING
+        val updateRes = orderRepository.updateOrderStatus(orderId, OrderStatus.PREPARING.name)
+        assertTrue(updateRes.isSuccess)
+        assertEquals(OrderStatus.PREPARING.name, updateRes.getOrNull()?.status)
+    }
+
+    @Test
+    fun testExceedStockCartRejection() = runBlocking {
+        val product = productRepository.getProductById("prod_meat_1")!!
+        val result = cartRepository.addToCart(product, product.stockQuantity + 100)
+        assertTrue(result.isFailure)
     }
 }

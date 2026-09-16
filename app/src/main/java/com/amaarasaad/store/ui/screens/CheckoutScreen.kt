@@ -19,7 +19,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -72,6 +75,7 @@ fun CheckoutScreen(
 
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("بغداد") }
     var address by remember { mutableStateOf("") }
     var nearestLandmark by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -116,7 +120,7 @@ fun CheckoutScreen(
                 )
             }
             Text(
-                text = "بيانات الطلب والتوصيل",
+                text = "إتمام الطلب (Guest Checkout)",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = NavyPrimary
             )
@@ -129,7 +133,7 @@ fun CheckoutScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Text(
-                text = "يرجى إدخال معلومات التوصيل لإكمال طلبك",
+                text = "يرجى ملء بيانات التوصيل لإرسال الطلب إلى متجر أبو هاشم",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -185,9 +189,25 @@ fun CheckoutScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
+                value = city,
+                onValueChange = { city = it; errorMessage = null },
+                label = { Text("المدينة *") },
+                leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = TealAccent) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = TealAccent,
+                    unfocusedBorderColor = BorderLight
+                )
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
                 value = address,
                 onValueChange = { address = it; errorMessage = null },
-                label = { Text("عنوان السكن (المحافظة / المنطقة / الشارع) *") },
+                label = { Text("العنوان الكامل (المنطقة / الشارع / الدار) *") },
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = TealAccent) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -218,7 +238,7 @@ fun CheckoutScreen(
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                label = { Text("ملاحظات إضافية (اختياري)") },
+                label = { Text("ملاحظات إضافية (ملاحظات التقطيع أو التغليف)") },
                 leadingIcon = { Icon(Icons.Default.Note, contentDescription = null, tint = TealAccent) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -229,13 +249,51 @@ fun CheckoutScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Payment Method Box
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Money,
+                        contentDescription = null,
+                        tint = SuccessGreen,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "طريقة الدفع: الدفع عند الاستلام",
+                            fontWeight = FontWeight.Bold,
+                            color = NavyPrimary,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = "يتم دفع المبلغ نقداً عند استلام طلبك من المندوب",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Order Total Summary
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -245,7 +303,7 @@ fun CheckoutScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "إجمالي المبلغ المطلوب:",
+                        text = "المجموع النهائي للطلب:",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = NavyPrimary
                     )
@@ -273,6 +331,7 @@ fun CheckoutScreen(
                     val info = OrderCustomerInfo(
                         fullName = fullName.trim(),
                         phoneNumber = phoneNumber.trim(),
+                        city = city.trim().ifBlank { "بغداد" },
                         address = address.trim(),
                         nearestLandmark = nearestLandmark.trim(),
                         notes = notes.trim()
@@ -330,7 +389,7 @@ fun OrderSuccessView(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "تم إرسال طلبك بنجاح!",
+            text = "🎉 تم إرسال طلبك بنجاح",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = NavyPrimary
         )
@@ -338,7 +397,7 @@ fun OrderSuccessView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "رقم الطلب: $orderId",
+            text = "رقم الطلب: #$orderId",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = TealAccent
         )
@@ -346,11 +405,19 @@ fun OrderSuccessView(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "شكراً لتسوقكم من عمار أسعد. سيتم التواصل معكم هاتفياً لإنهاء التوصيل.",
+            text = "سيتم التواصل معك لتأكيد الطلب.",
             style = MaterialTheme.typography.bodyLarge,
             color = TextSecondary,
-            textAlign = TextAlign.Center,
-            lineHeight = 22.sp
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "طريقة الدفع: الدفع عند الاستلام",
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            color = NavyPrimary,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -363,7 +430,9 @@ fun OrderSuccessView(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = NavyPrimary)
         ) {
-            Text("العودة إلى الرئيسية", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Icon(imageVector = Icons.Default.Home, contentDescription = null, tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("العودة للرئيسية", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

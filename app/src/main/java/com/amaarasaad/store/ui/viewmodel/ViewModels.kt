@@ -208,21 +208,20 @@ class CheckoutViewModel(
 
     fun submitOrder(customerInfo: OrderCustomerInfo) {
         val items = cartItems.value
-        val total = totalAmount.value
 
         if (items.isEmpty()) {
             _uiState.value = CheckoutUiState.Error("السلة فارغة")
             return
         }
 
-        if (customerInfo.fullName.isBlank() || customerInfo.phoneNumber.isBlank() || customerInfo.address.isBlank() || customerInfo.nearestLandmark.isBlank()) {
-            _uiState.value = CheckoutUiState.Error("يرجى ملء جميع الحقول المطلوبة")
+        if (customerInfo.fullName.isBlank() || customerInfo.phoneNumber.isBlank() || customerInfo.address.isBlank()) {
+            _uiState.value = CheckoutUiState.Error("يرجى إدخال كافة البيانات المطلوب إكمالها للتوصيل")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = CheckoutUiState.Loading
-            val result = orderRepository.submitOrder(customerInfo, items, total)
+            val result = orderRepository.submitOrder(customerInfo, items)
             result.onSuccess { order ->
                 _uiState.value = CheckoutUiState.Success(order)
             }.onFailure { ex ->
@@ -233,5 +232,58 @@ class CheckoutViewModel(
 
     fun resetState() {
         _uiState.value = CheckoutUiState.Idle
+    }
+}
+
+class AdminViewModel(
+    private val productRepository: ProductRepository,
+    private val orderRepository: OrderRepository
+) : ViewModel() {
+
+    val orders: StateFlow<List<Order>> = orderRepository.orders
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _products = MutableStateFlow<List<Product>>(emptyList())
+    val products: StateFlow<List<Product>> = _products
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories
+
+    init {
+        loadData()
+    }
+
+    fun loadData() {
+        viewModelScope.launch {
+            _products.value = productRepository.getProducts()
+            _categories.value = productRepository.getCategories()
+        }
+    }
+
+    fun updateOrderStatus(orderId: String, newStatus: String) {
+        viewModelScope.launch {
+            orderRepository.updateOrderStatus(orderId, newStatus)
+        }
+    }
+
+    fun updateProductStock(productId: String, newStock: Int) {
+        viewModelScope.launch {
+            productRepository.updateProductStock(productId, newStock)
+            loadData()
+        }
+    }
+
+    fun addProduct(product: Product) {
+        viewModelScope.launch {
+            productRepository.addProduct(product)
+            loadData()
+        }
+    }
+
+    fun deleteProduct(productId: String) {
+        viewModelScope.launch {
+            productRepository.deleteProduct(productId)
+            loadData()
+        }
     }
 }

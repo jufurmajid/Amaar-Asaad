@@ -1,6 +1,5 @@
 package com.amaarasaad.store.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.RemoveShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.amaarasaad.store.ui.components.CartItemRow
 import com.amaarasaad.store.ui.components.EmptyView
 import com.amaarasaad.store.ui.components.formatPrice
+import com.amaarasaad.store.ui.theme.DangerRed
 import com.amaarasaad.store.ui.theme.NavyPrimary
 import com.amaarasaad.store.ui.theme.TealAccent
 import com.amaarasaad.store.ui.theme.TextSecondary
@@ -55,12 +57,35 @@ fun CartScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "سلة التسوق",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = NavyPrimary,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "سلة التسوق",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = NavyPrimary
+            )
+
+            if (items.isNotEmpty()) {
+                OutlinedButton(
+                    onClick = { items.forEach { viewModel.removeItem(it.product.id) } },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DangerRed)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteSweep,
+                        contentDescription = "تفريغ السلة",
+                        tint = DangerRed
+                    )
+                    Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+                    Text("تفريغ", fontSize = 12.sp)
+                }
+            }
+        }
 
         if (items.isEmpty()) {
             Box(
@@ -111,8 +136,8 @@ fun CartScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("عدد المواد:", color = TextSecondary)
-                        Text("${items.sumOf { it.quantity }} قطعة", fontWeight = FontWeight.Bold)
+                        Text("عدد الأصناف بالمرتبة:", color = TextSecondary)
+                        Text("${items.size} عنصر", fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -153,7 +178,7 @@ fun CartScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
                             contentDescription = null,

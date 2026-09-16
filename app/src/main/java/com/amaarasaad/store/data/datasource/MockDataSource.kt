@@ -4,110 +4,216 @@ import com.amaarasaad.store.data.model.Category
 import com.amaarasaad.store.data.model.Product
 
 /**
- * Isolated Sample Data Source.
- * This decouples sample mock data from the UI and ViewModel layers.
- * In the future, this class can be swapped out or wrapped with Retrofit/Ktor API client
- * or Room Local Database to communicate with the Backend server and Telegram Bots.
+ * Mock Data Source for "أبو هاشم للحوم والألبان والأجبان".
+ * Decouples sample data from UI and ViewModel layers, supporting
+ * local and backend API integration.
  */
 object MockDataSource {
 
     val categories = listOf(
-        Category(id = "cat_notebooks", nameAr = "دفاتر", description = "دفاتر مدرسية وجامعية وملاحظات بأحجام مختلفة"),
-        Category(id = "cat_pens", nameAr = "أقلام", description = "أقلام جافة، حبر، رصاص، وتأشير من أرقى الماركات"),
-        Category(id = "cat_stationery", nameAr = "قرطاسية", description = "مساطر، ممحاة، مبراة، ولاصق، ومعدات هندسية"),
-        Category(id = "cat_school", nameAr = "مستلزمات مدرسية", description = "حقائب، مقالم، وأطقم أدوات متكاملة للطلاب"),
-        Category(id = "cat_printing", nameAr = "طباعة", description = "أوراق A4، أحبار طباعة، وأغلفة تجليد عالية الجودة"),
-        Category(id = "cat_office", nameAr = "مستلزمات مكتبية", description = "ملفات، خرامات، كابسات، ومنظمات مكاتب حديثة")
+        Category(
+            id = "cat_meat",
+            nameAr = "اللحوم الطازجة",
+            iconName = "meat",
+            description = "لحوم غنم وبقر عراقية طازجة ومذبوحة يومياً حسب الشريعة الإسلامية",
+            sortOrder = 1
+        ),
+        Category(
+            id = "cat_dairy",
+            nameAr = "الألبان الحليبية",
+            iconName = "dairy",
+            description = "ألبان، حليب، قيمر عرب، ولبن خاثر طازج يومياً من المزرعة مباشرة",
+            sortOrder = 2
+        ),
+        Category(
+            id = "cat_cheese",
+            nameAr = "الأجبان الفاخرة",
+            iconName = "cheese",
+            description = "تشكيلة من الأجبان البلدية والبلدات والمبشورة عالية الجودة",
+            sortOrder = 3
+        )
     )
 
-    val products = listOf(
+    val products = mutableListOf(
         Product(
-            id = "prod_1",
-            categoryId = "cat_notebooks",
-            nameAr = "دفتر سلك جامعي 100 ورقة مقسم",
-            descriptionAr = "دفتر جامعي فاخر غلاف مقوى مقسم إلى 4 أجزاء أوراق عالية الجودة لا تنفذ الحبر.",
-            priceIqd = 3500,
-            stockQuantity = 45,
-            imageUrl = "https://picsum.photos/seed/notebook1/400/400",
+            id = "prod_meat_1",
+            categoryId = "cat_meat",
+            nameAr = "لحم غنم عراقي طازج",
+            descriptionAr = "لحم غنم بلدي طازج مذبوح يومياً، خالي من الدهون الزائدة مناسب للطبخ والشواء.",
+            priceIqd = 22000,
+            unit = "كيلو",
+            stockQuantity = 25,
+            imageUrl = "https://picsum.photos/seed/lambmeat/400/400",
+            isAvailable = true,
+            isVisible = true,
             isNewArrival = true,
-            isFeatured = true
+            isFeatured = true,
+            isBestSeller = true
         ),
         Product(
-            id = "prod_2",
-            categoryId = "cat_notebooks",
-            nameAr = "دفتر رسم قياس A4 ورق سميك",
-            descriptionAr = "دفتر رسم 50 ورقة كرافت سميكة مناسبة للألوان المائية والخشبية والفحم.",
-            priceIqd = 4500,
-            stockQuantity = 20,
-            imageUrl = "https://picsum.photos/seed/drawingpad/400/400",
+            id = "prod_meat_2",
+            categoryId = "cat_meat",
+            nameAr = "لحم بقر مفروم بلدي",
+            descriptionAr = "لحم بقر طازج مفروم وجهين بنسبة دهن متوازنة مثالي للكبة والكباب والوجبات.",
+            priceIqd = 18000,
+            unit = "كيلو",
+            stockQuantity = 30,
+            imageUrl = "https://picsum.photos/seed/mincedmeat/400/400",
+            isAvailable = true,
+            isVisible = true,
             isNewArrival = true,
-            isFeatured = false
+            isFeatured = true,
+            isBestSeller = true
         ),
         Product(
-            id = "prod_3",
-            categoryId = "cat_pens",
-            nameAr = "طقم أقلام جاف 10 ألوان فاخرة",
-            descriptionAr = "مجموعة أقلام ملونة بسلاسة فائقة وسريعة الجفاف، مثالية للتدوين والرسم.",
-            priceIqd = 2500,
-            stockQuantity = 60,
-            imageUrl = "https://picsum.photos/seed/penset/400/400",
-            isNewArrival = false,
-            isFeatured = true
-        ),
-        Product(
-            id = "prod_4",
-            categoryId = "cat_pens",
-            nameAr = "قلم حبر جاف روترينج 0.5 ملم",
-            descriptionAr = "قلم حبر ألماني دقيق بكتابة انسيابية وتصميم مريح لليد أثناء الكتابة الطويلة.",
-            priceIqd = 1500,
-            stockQuantity = 100,
-            imageUrl = "https://picsum.photos/seed/rotringpen/400/400",
-            isNewArrival = true,
-            isFeatured = true
-        ),
-        Product(
-            id = "prod_5",
-            categoryId = "cat_stationery",
-            nameAr = "طقم هندسي متكامل للمدرسة",
-            descriptionAr = "يحتوي على مسطرة، مثلثين، منقلة، وفرجار معدني في علبة صفيح واقية.",
-            priceIqd = 3000,
-            stockQuantity = 35,
-            imageUrl = "https://picsum.photos/seed/geometries/400/400",
-            isNewArrival = false,
-            isFeatured = true
-        ),
-        Product(
-            id = "prod_6",
-            categoryId = "cat_school",
-            nameAr = "مقلمة قماشية متعددة الطبقات",
-            descriptionAr = "مقلمة تتسع لأكثر من 30 قلم مع سحّاب متين وتقسيمات داخلية عملية.",
-            priceIqd = 5000,
+            id = "prod_meat_3",
+            categoryId = "cat_meat",
+            nameAr = "كباب عراقي متبل جاهز للشوي",
+            descriptionAr = "أسياخ كباب غنم وبقر متبل بالبهارات العراقيّة الخاصة جاهز للتدوير والشوي مباشرة.",
+            priceIqd = 20000,
+            unit = "كيلو",
             stockQuantity = 15,
-            imageUrl = "https://picsum.photos/seed/pencilcase/400/400",
-            isNewArrival = true,
-            isFeatured = false
-        ),
-        Product(
-            id = "prod_7",
-            categoryId = "cat_printing",
-            nameAr = "باكيت ورق طباعة A4 دبل A (500 ورقة)",
-            descriptionAr = "ورق طباعة أبيض 80 غرام مناسب لجميع أنواع الطابعات والمكائن آمن للنسخ السريع.",
-            priceIqd = 7500,
-            stockQuantity = 80,
-            imageUrl = "https://picsum.photos/seed/a4paper/400/400",
+            imageUrl = "https://picsum.photos/seed/kebab/400/400",
+            isAvailable = true,
+            isVisible = true,
             isNewArrival = false,
-            isFeatured = true
+            isFeatured = true,
+            isBestSeller = true
         ),
         Product(
-            id = "prod_8",
-            categoryId = "cat_office",
-            nameAr = "منظم مكتب خشب 4 رفوف",
-            descriptionAr = "منظم أوراق وملفات مكتبي أنيق مصمم من الخشب المقوى لترتيب المكتب بسهولة.",
-            priceIqd = 12500,
-            stockQuantity = 12,
-            imageUrl = "https://picsum.photos/seed/deskorganizer/400/400",
+            id = "prod_meat_4",
+            categoryId = "cat_meat",
+            nameAr = "ريش غنم بلدي ممتازة",
+            descriptionAr = "قطع ريش غنم طرية مقطعة بعناية ومناسبة للشوي على الفحم أو الصينية.",
+            priceIqd = 24000,
+            unit = "كيلو",
+            stockQuantity = 10,
+            imageUrl = "https://picsum.photos/seed/lambchops/400/400",
+            isAvailable = true,
+            isVisible = true,
             isNewArrival = true,
-            isFeatured = true
+            isFeatured = false,
+            isBestSeller = false
+        ),
+        Product(
+            id = "prod_meat_5",
+            categoryId = "cat_meat",
+            nameAr = "شقف لحم بقر للطبخ",
+            descriptionAr = "قطع لحم بقر صافي بدون عظم مقطعة مكعبات مثالية للقص والمرق والطبخ اليومي.",
+            priceIqd = 10000,
+            unit = "نصف كيلو",
+            stockQuantity = 20,
+            imageUrl = "https://picsum.photos/seed/beefcubes/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = false,
+            isFeatured = false,
+            isBestSeller = false
+        ),
+        Product(
+            id = "prod_dairy_1",
+            categoryId = "cat_dairy",
+            nameAr = "قيمر عرب عراقي طازج",
+            descriptionAr = "قيمر سدة بلدي طازج مصنع يومياً بطريقة تقليدية نكهة وقوام فاخر جداً.",
+            priceIqd = 6000,
+            unit = "ربع كيلو",
+            stockQuantity = 40,
+            imageUrl = "https://picsum.photos/seed/kaymak/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = true,
+            isFeatured = true,
+            isBestSeller = true
+        ),
+        Product(
+            id = "prod_dairy_2",
+            categoryId = "cat_dairy",
+            nameAr = "لبن خاثر أربيل طازج",
+            descriptionAr = "سطيل لبن خاثر طبيعي 100% بدون إضافات حافظة غني بالفوائد والمذاق الأصيل.",
+            priceIqd = 4500,
+            unit = "عبوة",
+            stockQuantity = 50,
+            imageUrl = "https://picsum.photos/seed/yogurt/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = false,
+            isFeatured = true,
+            isBestSeller = true
+        ),
+        Product(
+            id = "prod_dairy_3",
+            categoryId = "cat_dairy",
+            nameAr = "حليب بقر طازج كامل الدسم",
+            descriptionAr = "حليب طبيعي طازج غير مضاف له أي مواد حافظة معقم ومبستر وجاهز للاستهلاك.",
+            priceIqd = 2500,
+            unit = "عبوة",
+            stockQuantity = 35,
+            imageUrl = "https://picsum.photos/seed/freshmilk/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = true,
+            isFeatured = false,
+            isBestSeller = false
+        ),
+        Product(
+            id = "prod_dairy_4",
+            categoryId = "cat_dairy",
+            nameAr = "زبدة عرب بلدية طازجة",
+            descriptionAr = "زبدة بلدي طبيعية ممتازة مستخرجة من ألبان الأبقار والجاموس بدون ملح.",
+            priceIqd = 7000,
+            unit = "نصف كيلو",
+            stockQuantity = 18,
+            imageUrl = "https://picsum.photos/seed/freshbutter/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = false,
+            isFeatured = true,
+            isBestSeller = false
+        ),
+        Product(
+            id = "prod_cheese_1",
+            categoryId = "cat_cheese",
+            nameAr = "جبن عرب بلدي مع حبة البركة",
+            descriptionAr = "جبن بلدي طازج قليـل الملح مع نكهة حبة البركة الرائعة خالي من المواد الحافظة.",
+            priceIqd = 12000,
+            unit = "كيلو",
+            stockQuantity = 30,
+            imageUrl = "https://picsum.photos/seed/arabcheese/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = true,
+            isFeatured = true,
+            isBestSeller = true
+        ),
+        Product(
+            id = "prod_cheese_2",
+            categoryId = "cat_cheese",
+            nameAr = "جبن شلل مشلل فاخر",
+            descriptionAr = "جبن شلل مالح قليل دسم ذو خيوط طرية ومذاق رائع للفطور والسندويشات.",
+            priceIqd = 6500,
+            unit = "نصف كيلو",
+            stockQuantity = 22,
+            imageUrl = "https://picsum.photos/seed/stringcheese/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = false,
+            isFeatured = true,
+            isBestSeller = false
+        ),
+        Product(
+            id = "prod_cheese_3",
+            categoryId = "cat_cheese",
+            nameAr = "جبن موزاريلا مبشور طازج",
+            descriptionAr = "كيس جبن موزاريلا غني ومطاطي جداً للمخبوزات والبيتزا والمعجنات.",
+            priceIqd = 5000,
+            unit = "عبوة",
+            stockQuantity = 25,
+            imageUrl = "https://picsum.photos/seed/mozzarella/400/400",
+            isAvailable = true,
+            isVisible = true,
+            isNewArrival = true,
+            isFeatured = false,
+            isBestSeller = true
         )
     )
 }

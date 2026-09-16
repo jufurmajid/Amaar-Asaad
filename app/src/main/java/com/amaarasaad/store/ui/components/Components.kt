@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,15 +18,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.LocalDining
+import androidx.compose.material.icons.filled.LunchDining
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Button
@@ -49,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,11 +62,42 @@ import com.amaarasaad.store.ui.theme.TealAccent
 import com.amaarasaad.store.ui.theme.TextSecondary
 
 @Composable
+fun DeveloperFooter(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Code,
+                contentDescription = null,
+                tint = TextSecondary,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "تم التطوير بواسطة جعفر ماجد",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextSecondary,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
 fun StoreSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "ابحث عن دفتر، قلم، أو أي منتج..."
+    placeholder: String = "ابحث عن لحم، جبن، لبن، حليب، قيمر..."
 ) {
     OutlinedTextField(
         value = query,
@@ -142,6 +173,8 @@ fun ProductCard(
     onAddToCartClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isOutOfStock = !product.isAvailable || product.stockQuantity <= 0
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -151,23 +184,38 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Product Mock Graphic Placeholder
+            // Product Graphic Placeholder
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(130.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF1F5F9)),
+                    .background(if (isOutOfStock) Color(0xFFF1F5F9) else Color(0xFFFEF2F2)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCategoryIcon(product.categoryId),
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
-                    tint = TealAccent
+                    tint = if (isOutOfStock) Color.Gray else NavyPrimary
                 )
 
-                if (product.isNewArrival) {
+                if (isOutOfStock) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .background(DangerRed, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "غير متوفر حالياً",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else if (product.isNewArrival) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -176,7 +224,7 @@ fun ProductCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "جديد",
+                            text = "طازج",
                             color = Color.White,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
@@ -197,7 +245,7 @@ fun ProductCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "الكمية: ${product.stockQuantity}",
+                text = "الوحدة: ${product.unit} • المخزون: ${product.stockQuantity}",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary
             )
@@ -209,17 +257,25 @@ fun ProductCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "${formatPrice(product.priceIqd)} د.ع",
-                    style = MaterialTheme.typography.titleMedium.copy(color = NavyPrimary),
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        text = "${formatPrice(product.priceIqd)} د.ع",
+                        style = MaterialTheme.typography.titleMedium.copy(color = NavyPrimary),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "لكل ${product.unit}",
+                        fontSize = 10.sp,
+                        color = TextSecondary
+                    )
+                }
 
                 IconButton(
                     onClick = onAddToCartClick,
+                    enabled = !isOutOfStock,
                     modifier = Modifier
                         .size(36.dp)
-                        .background(TealAccent, CircleShape)
+                        .background(if (isOutOfStock) Color.LightGray else TealAccent, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.AddShoppingCart,
@@ -259,13 +315,13 @@ fun CartItemRow(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF1F5F9)),
+                    .background(Color(0xFFFEF2F2)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCategoryIcon(cartItem.product.categoryId),
                     contentDescription = null,
-                    tint = TealAccent,
+                    tint = NavyPrimary,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -279,9 +335,9 @@ fun CartItemRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${formatPrice(cartItem.product.priceIqd)} د.ع × ${cartItem.quantity}",
+                    text = "${formatPrice(cartItem.product.priceIqd)} د.ع / ${cartItem.product.unit}",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -479,12 +535,9 @@ fun formatPrice(amount: Long): String {
 
 fun getCategoryIcon(categoryId: String): ImageVector {
     return when (categoryId) {
-        "cat_notebooks" -> Icons.Default.Book
-        "cat_pens" -> Icons.Default.Edit
-        "cat_stationery" -> Icons.Default.Category
-        "cat_school" -> Icons.Default.School
-        "cat_printing" -> Icons.Default.Print
-        "cat_office" -> Icons.Default.Folder
-        else -> Icons.Default.ShoppingBag
+        "cat_meat" -> Icons.Default.RestaurantMenu
+        "cat_dairy" -> Icons.Default.LocalDining
+        "cat_cheese" -> Icons.Default.LunchDining
+        else -> Icons.Default.Fastfood
     }
 }

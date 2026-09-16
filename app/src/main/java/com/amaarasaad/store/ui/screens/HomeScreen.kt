@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -26,12 +23,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.LocalMall
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -53,18 +47,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.amaarasaad.store.data.model.Category
 import com.amaarasaad.store.data.model.Product
 import com.amaarasaad.store.ui.components.CategoryChip
-import com.amaarasaad.store.ui.components.EmptyView
+import com.amaarasaad.store.ui.components.DeveloperFooter
 import com.amaarasaad.store.ui.components.ErrorView
 import com.amaarasaad.store.ui.components.LoadingView
 import com.amaarasaad.store.ui.components.ProductCard
 import com.amaarasaad.store.ui.components.StoreSearchBar
 import com.amaarasaad.store.ui.theme.NavyPrimary
 import com.amaarasaad.store.ui.theme.TealAccent
-import com.amaarasaad.store.ui.theme.TextSecondary
-import com.amaarasaad.store.ui.viewmodel.HomeData
 import com.amaarasaad.store.ui.viewmodel.HomeViewModel
 import com.amaarasaad.store.ui.viewmodel.UiState
 import kotlinx.coroutines.launch
@@ -95,6 +86,9 @@ fun HomeScreen(
                 // Store Header Banner
                 HeaderBanner()
 
+                // Offer Banner
+                PromotionalOfferCard()
+
                 // Search Bar
                 StoreSearchBar(
                     query = searchQuery,
@@ -104,14 +98,14 @@ fun HomeScreen(
                             onSearchSubmit(it)
                         }
                     },
-                    placeholder = "ابحث عن أقلام، دفاتر، مستلزمات مكتبية..."
+                    placeholder = "ابحث عن لحم، جبن، لبن، حليب، قيمر..."
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Categories Section Header
                 SectionHeader(
-                    title = "أقسام المتجر",
+                    title = "أقسام المتجر الرئيسية",
                     icon = Icons.Default.Category,
                     onActionClick = onViewAllCategories,
                     actionText = "عرض الكل"
@@ -132,9 +126,9 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // New Arrivals Section Header
+                // Fresh Arrivals Section Header
                 SectionHeader(
-                    title = "المنتجات الجديدة",
+                    title = "وصلتنا حديثاً (طازج اليوم)",
                     icon = Icons.Default.AutoAwesome
                 )
 
@@ -151,9 +145,9 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Featured Products Section Header
+                // Featured / Best Sellers Section Header
                 SectionHeader(
-                    title = "المنتجات الأكثر عرضاً والشرائية",
+                    title = "المنتجات الأكثر طلباً",
                     icon = Icons.Default.Star
                 )
 
@@ -168,7 +162,11 @@ fun HomeScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                DeveloperFooter()
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -181,7 +179,7 @@ fun HeaderBanner() {
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(NavyPrimary, Color(0xFF334155))
+                    colors = listOf(NavyPrimary, Color(0xFF1E293B))
                 )
             )
             .padding(20.dp)
@@ -194,11 +192,11 @@ fun HeaderBanner() {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(TealAccent),
+                    .background(Color(0xFFDC2626)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MenuBook,
+                    imageVector = Icons.Default.RestaurantMenu,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(32.dp)
@@ -209,15 +207,52 @@ fun HeaderBanner() {
 
             Column {
                 Text(
-                    text = "Amaar Asaad",
+                    text = "أبو هاشم",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Text(
-                    text = "عمار أسعد للمكتبة والقرطاسية والمستلزمات المدرسية",
+                    text = "للحوم والألبان والأجبان الطازجة - العراق",
                     fontSize = 13.sp,
                     color = Color(0xFFCBD5E1)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PromotionalOfferCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocalOffer,
+                contentDescription = null,
+                tint = Color(0xFFDC2626),
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = "🥩 جودة طازجة يومياً من المزرعة لبيتك",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = NavyPrimary
+                )
+                Text(
+                    text = "توصيل سريع لكافة مناطق العراق والدفع عند الاستلام",
+                    fontSize = 12.sp,
+                    color = Color.DarkGray
                 )
             }
         }
